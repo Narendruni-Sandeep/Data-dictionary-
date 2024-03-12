@@ -9,41 +9,38 @@ public class DatabaseSchemaGui extends Frame {
     private List columnsList = new List();
     private List constraintsList = new List();
     private Connection connection;
-    private PreparedStatement pstmt = null;
-    private ResultSet rs = null;
 
     public DatabaseSchemaGui() {
-        try {
-            // Establish database connection
-            connection = DriverManager.getConnection(
-                    "jdbc:postgresql://hostname:port/dbname", "username", "password");
-
-            // Populate tables dropdown
-            DatabaseMetaData dbMetaData = connection.getMetaData();
-            rs = dbMetaData.getTables(null, null, "%", new String[] {"TABLE"});
-            while (rs.next()) {
-                tablesChoice.add(rs.getString("TABLE_NAME"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        // Set up the layout
+        // Setup layout
         setLayout(new BorderLayout());
-        Panel choicesPanel = new Panel(new FlowLayout(FlowLayout.LEFT));
-        choicesPanel.add(tablesChoice);
-        choicesPanel.add(columnsChoice);
-
+        Panel choicesPanel = new Panel(new GridLayout(1, 2));
         Panel listsPanel = new Panel(new GridLayout(1, 2));
+
+        // Top panels for Tables and Columns dropdowns
+        Panel tablesPanel = new Panel();
+        tablesPanel.add(new Label("Tables:"));
+        tablesPanel.add(tablesChoice);
+        choicesPanel.add(tablesPanel);
+
+        Panel columnsPanel = new Panel();
+        columnsPanel.add(new Label("Columns:"));
+        columnsPanel.add(columnsChoice);
+        choicesPanel.add(columnsPanel);
+
+        // Lists for Columns and Constraints
         listsPanel.add(columnsList);
         listsPanel.add(constraintsList);
 
+        // Add panels to the main frame
         add(choicesPanel, BorderLayout.NORTH);
         add(listsPanel, BorderLayout.CENTER);
 
-        // Add listeners for dropdowns
-        tablesChoice.addItemListener(e -> updateColumns());
-        columnsChoice.addItemListener(e -> updateConstraints());
+        // Initialize database connection
+        initializeDBConnection();
+
+        // Register item listeners
+        tablesChoice.addItemListener(e -> updateColumnsDropdown());
+        columnsChoice.addItemListener(e -> updateConstraintsList());
 
         // Window closing handler
         addWindowListener(new WindowAdapter() {
@@ -53,48 +50,117 @@ public class DatabaseSchemaGui extends Frame {
             }
         });
 
+        // Set window properties
         setTitle("Database Schema Viewer");
-        setSize(800, 600);
+        setSize(600, 400);
         setVisible(true);
     }
 
-    private void updateColumns() {
-        columnsChoice.removeAll();
-        columnsList.removeAll();
-        String tableName = tablesChoice.getSelectedItem();
+    private void initializeDBConnection() {
         try {
-            // Get columns for selected table
-            DatabaseMetaData dbMetaData = connection.getMetaData();
-            rs = dbMetaData.getColumns(null, null, tableName, null);
+            String dbURL = "jdbc:postgresql://192.168.110.48/training";
+            Properties props = new Properties();
+            props.setProperty("user", "plf_training_admin");
+            props.setProperty("password", "pff123");
+            connection = DriverManager.getConnection(dbURL, props);
+            populateTablesDropdown();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.exit(1); // Exit or handle error appropriately
+        }
+    }
+
+    private void populateTablesDropdown() {
+        try {
+            DatabaseMetaData metaData = connection.getMetaData();
+            ResultSet rs = metaData.getTables(null, null, "%", new String[]{"TABLE"});
             while (rs.next()) {
-                String columnName = rs.getString("COLUMN_NAME");
-                columnsChoice.add(columnName);
-                columnsList.add(columnName);
+                tablesChoice.add(rs.getString("TABLE_NAME"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    private void updateConstraints() {
-        constraintsList.removeAll();
-        String tableName = tablesChoice.getSelectedItem();
-        String columnName = columnsChoice.getSelectedItem();
+    private void updateColumnsDropdown() {
+        columnsChoice.removeAll();
+        String selectedTable = tablesChoice.getSelectedItem();
         try {
-            // Get constraints for selected column
-            DatabaseMetaData dbMetaData = connection.getMetaData();
-            rs = dbMetaData.getImportedKeys(null, null, tableName);
+            DatabaseMetaData metaData = connection.getMetaData();
+            ResultSet rs = metaData.getColumns(null, null, selectedTable, null);
             while (rs.next()) {
-                if (columnName.equals(rs.getString("COLUMN_NAME"))) {
-                    constraintsList.add("FK - " + rs.getString("PKTABLE_NAME"));
+                columnsChoice.add(rs.getString("COLUMN_NAME"));
+            }
+            updateColumnsList(); // Update the columns list as well
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateColumnsList() {
+        columnsList.removeAll();
+        String selectedTable = tablesChoice.getSelectedItem();
+        try {
+            DatabaseMetaData metaData = connection.getMetaData();
+            ResultSet rs = metaData.getColumns(null, null, selectedTable, null);
+            while (rs.next()) {
+                columnsList.add(rs.getString("COLUMN_NAME"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateConstraintsList() {
+        constraintsList.removeAll();
+        String selectedTable = tablesChoice.getSelectedItem();
+        String selectedColumn = columnsChoice.getSelectedItem();
+        try {
+            DatabaseMetaData metaData = connection.getMetaData();
+            ResultSet rs;
+
+            // Check for primary keys
+            rs = metaData.getPrimaryKeys(null, null, selectedTable);
+            while (rs.next()) {
+                if (rs.getString("COLUMN_NAME").equals(selectedColumn)) {
+                    constraintsList.add("Primary Key");
+                    break; // Assuming only one primary key
                 }
             }
-            rs = dbMetaData.getExportedKeys(null, null, tableName);
+
+            // Check for foreign keys
+            rs = metaData.getImportedKeys(null, null, selectedTable);
             while (rs.next()) {
-                if (columnName.equals(rs.getString("FKCOLUMN_NAME"))) {
-                    constraintsList.add("Referenced by - " + rs.getString("FKTABLE_NAME"));
+                if (rs.getString("FKCOLUMN_NAME").equals(selectedColumn)) {
+                    constraintsList.add("Foreign Key to table " + rs.getString("PKTABLE_NAME"));
                 }
             }
+            // ...continuing updateConstraintsList
+
+            // Since JDBC does not provide a direct way to get UNIQUE and CHECK constraints,
+            // you might need to use a SQL query specific to PostgreSQL, for example:
+            String query = "SELECT conname, contype FROM pg_constraint "
+                    + "WHERE conrelid = (SELECT oid FROM pg_class WHERE relname = ?) "
+                    + "AND conkey = ANY (SELECT indkey FROM pg_index WHERE indrelid = conrelid AND indisunique IS TRUE)";
+
+            PreparedStatement pstmt = connection.prepareStatement(query);
+            pstmt.setString(1, selectedTable);
+            ResultSet constraints = pstmt.executeQuery();
+            while (constraints.next()) {
+                String constraintName = constraints.getString("conname");
+                String constraintType = constraints.getString("contype");
+
+                if ("p".equals(constraintType) && !constraintsList.getItems().contains("Primary Key")) {
+                    constraintsList.add("Primary Key - " + constraintName);
+                } else if ("u".equals(constraintType)) {
+                    constraintsList.add("Unique - " + constraintName);
+                } else if ("c".equals(constraintType)) {
+                    constraintsList.add("Check - " + constraintName);
+                } // For foreign keys, we already covered above
+            }
+            constraints.close();
+            pstmt.close();
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -102,11 +168,11 @@ public class DatabaseSchemaGui extends Frame {
 
     private void closeDatabaseConnection() {
         try {
-            if (rs != null) rs.close();
-            if (pstmt != null) pstmt.close();
-            if (connection != null) connection.close();
-        } catch (SQLException se) {
-            se.printStackTrace();
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -114,3 +180,5 @@ public class DatabaseSchemaGui extends Frame {
         new DatabaseSchemaGui(); // Create the GUI
     }
 }
+
+
