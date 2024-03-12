@@ -1,59 +1,54 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
+import java.util.Properties;
 
 public class DatabaseSchemaGui extends Frame {
 
     private Choice tablesChoice = new Choice();
     private Choice columnsChoice = new Choice();
-    private List columnsList = new List();
+    private List serialNoList = new List();
+    private List columnList = new List();
     private List constraintsList = new List();
     private Connection connection;
 
     public DatabaseSchemaGui() {
-        // Setup layout
-        setLayout(new BorderLayout());
-        Panel choicesPanel = new Panel(new GridLayout(1, 2));
-        Panel listsPanel = new Panel(new GridLayout(1, 2));
+        initializeGUI();
+        initializeDBConnection();
+    }
 
-        // Top panels for Tables and Columns dropdowns
-        Panel tablesPanel = new Panel();
-        tablesPanel.add(new Label("Tables:"));
-        tablesPanel.add(tablesChoice);
-        choicesPanel.add(tablesPanel);
+    private void initializeGUI() {
+        setLayout(new BorderLayout(5, 5));
 
-        Panel columnsPanel = new Panel();
-        columnsPanel.add(new Label("Columns:"));
-        columnsPanel.add(columnsChoice);
-        choicesPanel.add(columnsPanel);
+        Panel choicesPanel = new Panel(new GridLayout(1, 2, 5, 5));
+        choicesPanel.add(new Label("Tables:"));
+        choicesPanel.add(tablesChoice);
+        choicesPanel.add(new Label("Columns:"));
+        choicesPanel.add(columnsChoice);
 
-        // Lists for Columns and Constraints
-        listsPanel.add(columnsList);
+        Panel tablePanel = new Panel(new GridLayout(1, 3, 5, 5));
+        tablePanel.add(new Label("S.No"));
+        tablePanel.add(new Label("Column"));
+        tablePanel.add(new Label("Constraints"));
+
+        Panel listsPanel = new Panel(new GridLayout(1, 3, 5, 5));
+        listsPanel.add(serialNoList);
+        listsPanel.add(columnList);
         listsPanel.add(constraintsList);
 
-        // Add panels to the main frame
         add(choicesPanel, BorderLayout.NORTH);
-        add(listsPanel, BorderLayout.CENTER);
+        add(tablePanel, BorderLayout.CENTER);
+        add(listsPanel, BorderLayout.SOUTH);
 
-        // Initialize database connection
-        initializeDBConnection();
+        setSize(800, 600);
+        setVisible(true);
 
-        // Register item listeners
-        tablesChoice.addItemListener(e -> updateColumnsDropdown());
-        columnsChoice.addItemListener(e -> updateConstraintsList());
-
-        // Window closing handler
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent we) {
                 closeDatabaseConnection();
                 dispose();
             }
         });
-
-        // Set window properties
-        setTitle("Database Schema Viewer");
-        setSize(600, 400);
-        setVisible(true);
     }
 
     private void initializeDBConnection() {
@@ -66,118 +61,58 @@ public class DatabaseSchemaGui extends Frame {
             populateTablesDropdown();
         } catch (SQLException e) {
             e.printStackTrace();
-            System.exit(1); // Exit or handle error appropriately
+            System.exit(1);
         }
     }
 
     private void populateTablesDropdown() {
         try {
             DatabaseMetaData metaData = connection.getMetaData();
-            ResultSet rs = metaData.getTables(null, null, "%", new String[]{"TABLE"});
-            while (rs.next()) {
-                tablesChoice.add(rs.getString("TABLE_NAME"));
+            try (ResultSet rs = metaData.getTables(null, null, "%", new String[]{"TABLE"})) {
+                while (rs.next()) {
+                    tablesChoice.add(rs.getString("TABLE_NAME"));
+                }
             }
+            tablesChoice.addItemListener(this::updateColumnsDropdown);
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    private void updateColumnsDropdown() {
+    private void updateColumnsDropdown(ItemEvent e) {
         columnsChoice.removeAll();
+        columnList.removeAll();
+        constraintsList.removeAll();
+        serialNoList.removeAll();
+
         String selectedTable = tablesChoice.getSelectedItem();
         try {
             DatabaseMetaData metaData = connection.getMetaData();
-            ResultSet rs = metaData.getColumns(null, null, selectedTable, null);
-            while (rs.next()) {
-                columnsChoice.add(rs.getString("COLUMN_NAME"));
+            try (ResultSet rs = metaData.getColumns(null, null, selectedTable, null)) {
+                int serialNo = 1;
+                while (rs.next()) {
+                    String columnName = rs.getString("COLUMN_NAME");
+                    columnsChoice.add(columnName);
+                    columnList.add(columnName);
+                    serialNoList.add(Integer.toString(serialNo++));
+                    // Placeholder for constraints. You will need to update this part to query constraints.
+                    constraintsList.add("Constraints here"); // Update this line to add actual constraints.
+                }
             }
-            updateColumnsList(); // Update the columns list as well
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
         }
     }
-
-    private void updateColumnsList() {
-        columnsList.removeAll();
-        String selectedTable = tablesChoice.getSelectedItem();
-        try {
-            DatabaseMetaData metaData = connection.getMetaData();
-            ResultSet rs = metaData.getColumns(null, null, selectedTable, null);
-            while (rs.next()) {
-                columnsList.add(rs.getString("COLUMN_NAME"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void updateConstraintsList() {
-    constraintsList.removeAll();
-    String selectedTable = tablesChoice.getSelectedItem();
-    String selectedColumn = columnsChoice.getSelectedItem();
-
-    try {
-        DatabaseMetaData metaData = connection.getMetaData();
-
-        // Primary Keys
-        ResultSet primaryKeys = metaData.getPrimaryKeys(null, null, selectedTable);
-        while (primaryKeys.next()) {
-            String columnName = primaryKeys.getString("COLUMN_NAME");
-            if (columnName.equals(selectedColumn)) {
-                constraintsList.add("Primary Key");
-                break; // Assuming only one primary key per column
-            }
-        }
-        primaryKeys.close();
-
-        // Foreign Keys
-        ResultSet foreignKeys = metaData.getImportedKeys(null, null, selectedTable);
-        while (foreignKeys.next()) {
-            String fkColumnName = foreignKeys.getString("FKCOLUMN_NAME");
-            if (fkColumnName.equals(selectedColumn)) {
-                constraintsList.add("Foreign Key to " + foreignKeys.getString("PKTABLE_NAME"));
-            }
-        }
-        foreignKeys.close();
-
-        // Add your own logic here for UNIQUE, CHECK, etc., constraints if needed
-        // This often requires querying specific PostgreSQL system tables,
-        // as these constraints might not be directly accessible via JDBC's DatabaseMetaData
-
-        // Example for additional constraints (pseudo-code, adjust as needed):
-        /*
-        String query = "SELECT constraint_type, constraint_name FROM information_schema.constraints WHERE table_name = ? AND column_name = ?";
-        PreparedStatement pstmt = connection.prepareStatement(query);
-        pstmt.setString(1, selectedTable);
-        pstmt.setString(2, selectedColumn);
-        ResultSet rs = pstmt.executeQuery();
-        while (rs.next()) {
-            String constraintType = rs.getString("constraint_type");
-            String constraintName = rs.getString("constraint_name");
-            constraintsList.add(constraintType + " - " + constraintName);
-        }
-        rs.close();
-        pstmt.close();
-        */
-
-    } catch (SQLException e) {
-        System.err.println("Could not load constraints: " + e.getMessage());
-    }
-}
 
     private void closeDatabaseConnection() {
         try {
-            if (connection != null && !connection.isClosed()) {
-                connection.close();
-            }
+            if (connection != null) connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
     public static void main(String[] args) {
-        new DatabaseSchemaGui(); // Create the GUI
+        new DatabaseSchemaGui();
     }
 }
-
-
