@@ -112,59 +112,58 @@ public class DatabaseSchemaGui extends Frame {
     }
 
     private void updateConstraintsList() {
-        constraintsList.removeAll();
-        String selectedTable = tablesChoice.getSelectedItem();
-        String selectedColumn = columnsChoice.getSelectedItem();
-        try {
-            DatabaseMetaData metaData = connection.getMetaData();
-            ResultSet rs;
+    constraintsList.removeAll();
+    String selectedTable = tablesChoice.getSelectedItem();
+    String selectedColumn = columnsChoice.getSelectedItem();
 
-            // Check for primary keys
-            rs = metaData.getPrimaryKeys(null, null, selectedTable);
-            while (rs.next()) {
-                if (rs.getString("COLUMN_NAME").equals(selectedColumn)) {
-                    constraintsList.add("Primary Key");
-                    break; // Assuming only one primary key
-                }
+    try {
+        DatabaseMetaData metaData = connection.getMetaData();
+
+        // Primary Keys
+        ResultSet primaryKeys = metaData.getPrimaryKeys(null, null, selectedTable);
+        while (primaryKeys.next()) {
+            String columnName = primaryKeys.getString("COLUMN_NAME");
+            if (columnName.equals(selectedColumn)) {
+                constraintsList.add("Primary Key");
+                break; // Assuming only one primary key per column
             }
-
-            // Check for foreign keys
-            rs = metaData.getImportedKeys(null, null, selectedTable);
-            while (rs.next()) {
-                if (rs.getString("FKCOLUMN_NAME").equals(selectedColumn)) {
-                    constraintsList.add("Foreign Key to table " + rs.getString("PKTABLE_NAME"));
-                }
-            }
-            // ...continuing updateConstraintsList
-
-            // Since JDBC does not provide a direct way to get UNIQUE and CHECK constraints,
-            // you might need to use a SQL query specific to PostgreSQL, for example:
-            String query = "SELECT conname, contype FROM pg_constraint "
-                    + "WHERE conrelid = (SELECT oid FROM pg_class WHERE relname = ?) "
-                    + "AND conkey = ANY (SELECT indkey FROM pg_index WHERE indrelid = conrelid AND indisunique IS TRUE)";
-
-            PreparedStatement pstmt = connection.prepareStatement(query);
-            pstmt.setString(1, selectedTable);
-            ResultSet constraints = pstmt.executeQuery();
-            while (constraints.next()) {
-                String constraintName = constraints.getString("conname");
-                String constraintType = constraints.getString("contype");
-
-                if ("p".equals(constraintType) && !constraintsList.getItems().contains("Primary Key")) {
-                    constraintsList.add("Primary Key - " + constraintName);
-                } else if ("u".equals(constraintType)) {
-                    constraintsList.add("Unique - " + constraintName);
-                } else if ("c".equals(constraintType)) {
-                    constraintsList.add("Check - " + constraintName);
-                } // For foreign keys, we already covered above
-            }
-            constraints.close();
-            pstmt.close();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
+        primaryKeys.close();
+
+        // Foreign Keys
+        ResultSet foreignKeys = metaData.getImportedKeys(null, null, selectedTable);
+        while (foreignKeys.next()) {
+            String fkColumnName = foreignKeys.getString("FKCOLUMN_NAME");
+            if (fkColumnName.equals(selectedColumn)) {
+                constraintsList.add("Foreign Key to " + foreignKeys.getString("PKTABLE_NAME"));
+            }
+        }
+        foreignKeys.close();
+
+        // Add your own logic here for UNIQUE, CHECK, etc., constraints if needed
+        // This often requires querying specific PostgreSQL system tables,
+        // as these constraints might not be directly accessible via JDBC's DatabaseMetaData
+
+        // Example for additional constraints (pseudo-code, adjust as needed):
+        /*
+        String query = "SELECT constraint_type, constraint_name FROM information_schema.constraints WHERE table_name = ? AND column_name = ?";
+        PreparedStatement pstmt = connection.prepareStatement(query);
+        pstmt.setString(1, selectedTable);
+        pstmt.setString(2, selectedColumn);
+        ResultSet rs = pstmt.executeQuery();
+        while (rs.next()) {
+            String constraintType = rs.getString("constraint_type");
+            String constraintName = rs.getString("constraint_name");
+            constraintsList.add(constraintType + " - " + constraintName);
+        }
+        rs.close();
+        pstmt.close();
+        */
+
+    } catch (SQLException e) {
+        System.err.println("Could not load constraints: " + e.getMessage());
     }
+}
 
     private void closeDatabaseConnection() {
         try {
