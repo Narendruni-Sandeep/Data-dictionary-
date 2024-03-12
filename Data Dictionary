@@ -1,6 +1,8 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 public class DatabaseSchemaGui extends Frame {
@@ -20,27 +22,21 @@ public class DatabaseSchemaGui extends Frame {
     private void initializeGUI() {
         setLayout(new BorderLayout(5, 5));
 
-        Panel choicesPanel = new Panel(new GridLayout(1, 2, 5, 5));
+        Panel choicesPanel = new Panel(new FlowLayout());
         choicesPanel.add(new Label("Tables:"));
         choicesPanel.add(tablesChoice);
         choicesPanel.add(new Label("Columns:"));
         choicesPanel.add(columnsChoice);
 
-        Panel tablePanel = new Panel(new GridLayout(1, 3, 5, 5));
-        tablePanel.add(new Label("S.No"));
-        tablePanel.add(new Label("Column"));
-        tablePanel.add(new Label("Constraints"));
-
-        Panel listsPanel = new Panel(new GridLayout(1, 3, 5, 5));
+        Panel listsPanel = new Panel(new GridLayout(1, 3));
         listsPanel.add(serialNoList);
         listsPanel.add(columnList);
         listsPanel.add(constraintsList);
 
         add(choicesPanel, BorderLayout.NORTH);
-        add(tablePanel, BorderLayout.CENTER);
-        add(listsPanel, BorderLayout.SOUTH);
+        add(listsPanel, BorderLayout.CENTER);
 
-        setSize(800, 600);
+        setSize(800, 400);
         setVisible(true);
 
         addWindowListener(new WindowAdapter() {
@@ -68,45 +64,82 @@ public class DatabaseSchemaGui extends Frame {
     private void populateTablesDropdown() {
         try {
             DatabaseMetaData metaData = connection.getMetaData();
-            try (ResultSet rs = metaData.getTables(null, null, "%", new String[]{"TABLE"})) {
-                while (rs.next()) {
-                    tablesChoice.add(rs.getString("TABLE_NAME"));
-                }
+            ResultSet rs = metaData.getTables(null, null, "%", new String[]{"TABLE"});
+            while (rs.next()) {
+                tablesChoice.add(rs.getString("TABLE_NAME"));
             }
-            tablesChoice.addItemListener(this::updateColumnsDropdown);
+            rs.close();
+
+            tablesChoice.addItemListener(e -> updateColumnsDropdown());
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    private void updateColumnsDropdown(ItemEvent e) {
+    private void updateColumnsDropdown() {
         columnsChoice.removeAll();
+        serialNoList.removeAll();
         columnList.removeAll();
         constraintsList.removeAll();
-        serialNoList.removeAll();
 
         String selectedTable = tablesChoice.getSelectedItem();
+        updateColumnsAndConstraints(selectedTable);
+    }
+
+    private void updateColumnsAndConstraints(String selectedTable) {
         try {
             DatabaseMetaData metaData = connection.getMetaData();
+
+            // Retrieving primary keys
+            Map<String, String> primaryKeys = new HashMap<>();
+            try (ResultSet pkResultSet = metaData.getPrimaryKeys(null, null, selectedTable)) {
+                while (pkResultSet.next()) {
+                    String columnName = pkResultSet.getString("COLUMN_NAME");
+                    primaryKeys.put(columnName, "PK");
+                }
+            }
+
+            // Retrieving foreign keys
+            Map<String, String> foreignKeys = new HashMap<>();
+            try (ResultSet fkResultSet = metaData.getImportedKeys(null, null, selectedTable)) {
+                while (fkResultSet.next()) {
+                    String fkColumnName = fkResultSet.getString("FKCOLUMN_NAME");
+                    String pkTableName = fkResultSet.getString("PKTABLE_NAME");
+                    foreignKeys.put(fkColumnName, "FK to " + pkTableName);
+                }
+            }
+
+            // Displaying columns and their constraints
             try (ResultSet rs = metaData.getColumns(null, null, selectedTable, null)) {
                 int serialNo = 1;
                 while (rs.next()) {
                     String columnName = rs.getString("COLUMN_NAME");
                     columnsChoice.add(columnName);
-                    columnList.add(columnName);
                     serialNoList.add(Integer.toString(serialNo++));
-                    // Placeholder for constraints. You will need to update this part to query constraints.
-                    constraintsList.add("Constraints here"); // Update this line to add actual constraints.
+                    columnList.add(columnName);
+                    
+                    // Construct constraint info
+                    String constraintInfo = "";
+                    if (primaryKeys.containsKey(columnName)) {
+                        constraintInfo += primaryKeys.get(columnName);
+                    }
+                    if (foreignKeys.containsKey(columnName)) {
+                        constraintInfo += (!constraintInfo.isEmpty() ? ", " : "") + foreignKeys.get(columnName);
+                    }
+
+                    constraintsList.add(constraintInfo.isEmpty() ? "No Constraints" : constraintInfo);
                 }
             }
-        } catch (SQLException ex) {
-            ex.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
     private void closeDatabaseConnection() {
         try {
-            if (connection != null) connection.close();
+            if (connection != null && !connection.isClosed()) {
+                connection.close();
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
