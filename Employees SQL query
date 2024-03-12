@@ -1,0 +1,12 @@
+CREATE TABLE employees (
+    empid SERIAL PRIMARY KEY,
+    ename VARCHAR(255) NOT NULL,
+    salary DECIMAL(10, 2) CHECK (salary > 0),
+    job VARCHAR(100) NOT NULL,
+    dept VARCHAR(50)
+);
+INSERT INTO employees (ename, salary, job, dept) VALUES
+('John Doe', 75000.00, 'Software Engineer', 'Engineering'),
+('Jane Smith', 65000.00, 'Data Analyst', 'Marketing'),
+('Jim Bean', 85000.00, 'Project Manager', 'Operations'),
+('Jill Valentine', 90000.00, 'Security Specialist', 'Security');
