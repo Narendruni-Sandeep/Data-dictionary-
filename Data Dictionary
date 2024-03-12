@@ -1,0 +1,116 @@
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+
+public class DatabaseSchemaGui extends Frame {
+
+    private Choice tablesChoice = new Choice();
+    private Choice columnsChoice = new Choice();
+    private List columnsList = new List();
+    private List constraintsList = new List();
+    private Connection connection;
+    private PreparedStatement pstmt = null;
+    private ResultSet rs = null;
+
+    public DatabaseSchemaGui() {
+        try {
+            // Establish database connection
+            connection = DriverManager.getConnection(
+                    "jdbc:postgresql://hostname:port/dbname", "username", "password");
+
+            // Populate tables dropdown
+            DatabaseMetaData dbMetaData = connection.getMetaData();
+            rs = dbMetaData.getTables(null, null, "%", new String[] {"TABLE"});
+            while (rs.next()) {
+                tablesChoice.add(rs.getString("TABLE_NAME"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // Set up the layout
+        setLayout(new BorderLayout());
+        Panel choicesPanel = new Panel(new FlowLayout(FlowLayout.LEFT));
+        choicesPanel.add(tablesChoice);
+        choicesPanel.add(columnsChoice);
+
+        Panel listsPanel = new Panel(new GridLayout(1, 2));
+        listsPanel.add(columnsList);
+        listsPanel.add(constraintsList);
+
+        add(choicesPanel, BorderLayout.NORTH);
+        add(listsPanel, BorderLayout.CENTER);
+
+        // Add listeners for dropdowns
+        tablesChoice.addItemListener(e -> updateColumns());
+        columnsChoice.addItemListener(e -> updateConstraints());
+
+        // Window closing handler
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent we) {
+                closeDatabaseConnection();
+                dispose();
+            }
+        });
+
+        setTitle("Database Schema Viewer");
+        setSize(800, 600);
+        setVisible(true);
+    }
+
+    private void updateColumns() {
+        columnsChoice.removeAll();
+        columnsList.removeAll();
+        String tableName = tablesChoice.getSelectedItem();
+        try {
+            // Get columns for selected table
+            DatabaseMetaData dbMetaData = connection.getMetaData();
+            rs = dbMetaData.getColumns(null, null, tableName, null);
+            while (rs.next()) {
+                String columnName = rs.getString("COLUMN_NAME");
+                columnsChoice.add(columnName);
+                columnsList.add(columnName);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateConstraints() {
+        constraintsList.removeAll();
+        String tableName = tablesChoice.getSelectedItem();
+        String columnName = columnsChoice.getSelectedItem();
+        try {
+            // Get constraints for selected column
+            DatabaseMetaData dbMetaData = connection.getMetaData();
+            rs = dbMetaData.getImportedKeys(null, null, tableName);
+            while (rs.next()) {
+                if (columnName.equals(rs.getString("COLUMN_NAME"))) {
+                    constraintsList.add("FK - " + rs.getString("PKTABLE_NAME"));
+                }
+            }
+            rs = dbMetaData.getExportedKeys(null, null, tableName);
+            while (rs.next()) {
+                if (columnName.equals(rs.getString("FKCOLUMN_NAME"))) {
+                    constraintsList.add("Referenced by - " + rs.getString("FKTABLE_NAME"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void closeDatabaseConnection() {
+        try {
+            if (rs != null) rs.close();
+            if (pstmt != null) pstmt.close();
+            if (connection != null) connection.close();
+        } catch (SQLException se) {
+            se.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) {
+        new DatabaseSchemaGui(); // Create the GUI
+    }
+}
