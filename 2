@@ -1,0 +1,155 @@
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+public class DatabaseSchemaGui extends Frame {
+
+    private Choice tablesChoice = new Choice();
+    private Choice columnsChoice = new Choice();
+    private List serialNoList = new List();
+    private List columnList = new List();
+    private List constraintsList = new List();
+    private Connection connection;
+
+    public DatabaseSchemaGui() {
+        initializeGUI();
+        initializeDBConnection();
+    }
+
+    private void initializeGUI() {
+        setLayout(new BorderLayout(5, 5));
+
+        Panel choicesPanel = new Panel(new FlowLayout());
+        choicesPanel.add(new Label("Tables:"));
+        choicesPanel.add(tablesChoice);
+        choicesPanel.add(new Label("Columns:"));
+        choicesPanel.add(columnsChoice);
+
+        Panel listsPanel = new Panel(new GridLayout(1, 3));
+        listsPanel.add(serialNoList);
+        listsPanel.add(columnList);
+        listsPanel.add(constraintsList);
+
+        add(choicesPanel, BorderLayout.NORTH);
+        add(listsPanel, BorderLayout.CENTER);
+
+        setSize(800, 400);
+        setVisible(true);
+
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent we) {
+                closeDatabaseConnection();
+                dispose();
+            }
+        });
+    }
+
+    private void initializeDBConnection() {
+        try {
+            String dbURL = "jdbc:postgresql://192.168.110.48/training";
+            Properties props = new Properties();
+            props.setProperty("user", "plf_training_admin");
+            props.setProperty("password", "pff123");
+            connection = DriverManager.getConnection(dbURL, props);
+            populateTablesDropdown();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+    private void populateTablesDropdown() {
+        try {
+            DatabaseMetaData metaData = connection.getMetaData();
+            ResultSet rs = metaData.getTables(null, null, "%", new String[]{"TABLE"});
+            while (rs.next()) {
+                tablesChoice.add(rs.getString("TABLE_NAME"));
+            }
+            rs.close();
+
+            tablesChoice.addItemListener(e -> updateColumnsDropdown());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateColumnsDropdown() {
+        columnsChoice.removeAll();
+        serialNoList.removeAll();
+        columnList.removeAll();
+        constraintsList.removeAll();
+
+        String selectedTable = tablesChoice.getSelectedItem();
+        updateColumnsAndConstraints(selectedTable);
+    }
+
+    private void updateColumnsAndConstraints(String selectedTable) {
+        try {
+            DatabaseMetaData metaData = connection.getMetaData();
+
+            // New section to retrieve unique and check constraints
+            String constraintSQL = "SELECT con.conname AS constraint_name, a.attname AS column_name, "
+                + "CASE WHEN con.contype = 'u' THEN 'Unique' WHEN con.contype = 'c' THEN 'Check' ELSE null END AS constraint_type "
+                + "FROM pg_constraint con "
+                + "JOIN pg_class rel ON rel.oid = con.conrelid "
+                + "JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace "
+                + "JOIN pg_attribute a ON a.attrelid = rel.oid AND a.attnum = ANY(con.conkey) "
+                + "WHERE rel.relname = ? AND nsp.nspname = 'public'"; // Assuming default 'public' schema
+
+            Map<String, String> otherConstraints = new HashMap<>();
+            try (PreparedStatement pstmt = connection.prepareStatement(constraintSQL)) {
+                pstmt.setString(1, selectedTable);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    while (rs.next()) {
+                        String columnName = rs.getString("column_name");
+                        String constraintType = rs.getString("constraint_type");
+                        String constraintName = rs.getString("constraint_name");
+                        String existingValue = otherConstraints.getOrDefault(columnName, "");
+                        otherConstraints.put(columnName, existingValue.isEmpty() ? constraintType + " (" + constraintName + ")"
+                            : existingValue + ", " + constraintType + " (" + constraintName + ")");
+                    }
+                }
+            }
+
+            // Displaying columns and their constraints
+            try (ResultSet rs = metaData.getColumns(null, null, selectedTable, null)) {
+                int serialNo = 1;
+                while (rs.next()) {
+                    String columnName = rs.getString("COLUMN_NAME");
+                    columnsChoice.add(columnName);
+                    columnList.add(columnName);
+                    serialNoList.add(Integer.toString(serialNo++));
+
+                    String constraintInfo = otherConstraints.getOrDefault(columnName, "No Constraints");
+                    constraintsList.add(constraintInfo);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void closeDatabaseConnection() {
+        try {
+            if(connection != null && !connection.isClosed()) {
+                connection.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) {
+        // Ensure that the GUI is created in the Event Dispatch Thread
+        EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new DatabaseSchemaGui();
+            }
+        });
+    }
+}
+
