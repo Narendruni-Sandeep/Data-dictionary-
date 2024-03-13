@@ -1,16 +1,19 @@
-Panel tablePanel = new Panel(new GridLayout(1, 7)); // Adjusted for 7 columns
-        listSNo = new List();
-        listName = new List();
-        listEmpId = new List();
-        listJob = new List();
-        listSalary = new List();
-        listHireDate = new List();
-        listDeptNo = new List();
-        
-        tablePanel.add(listSNo);
-        tablePanel.add(listName);
-        tablePanel.add(listEmpId);
-        tablePanel.add(listJob);
-        tablePanel.add(listSalary);
-        tablePanel.add(listHireDate);
-        tablePanel.add(listDeptNo);
+tfEmpNo = new TextField(10);
+        tfName = new TextField(10);
+        tfJob = new TextField(10);
+        tfSalary = new TextField(10);
+        tfDeptNo = new TextField(10);
+        tfHireDate = new TextField(10);
+
+        detailsPanel.add(new Label("EMP NO"));
+        detailsPanel.add(tfEmpNo);
+        detailsPanel.add(new Label("NAME"));
+        detailsPanel.add(tfName);
+        detailsPanel.add(new Label("JOB"));
+        detailsPanel.add(tfJob);
+        detailsPanel.add(new Label("SALARY"));
+        detailsPanel.add(tfSalary);
+        detailsPanel.add(new Label("DEPT NO"));
+        detailsPanel.add(tfDeptNo);
+        detailsPanel.add(new Label("HIRE DATE"));
+        detailsPanel.add(tfHireDate);
