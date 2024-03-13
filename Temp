@@ -1,0 +1,22 @@
+private void displayFirstEmployee() {
+    try {
+        if (resultSet.first()) {
+            displayEmployeeDetails();
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
+
+private void displayEmployeeDetails() {
+    try {
+        tfEmpNo.setText(resultSet.getString("emp_no"));
+        tfName.setText(resultSet.getString("name"));
+        tfJob.setText(resultSet.getString("job"));
+        tfSalary.setText(resultSet.getString("salary"));
+        tfDeptNo.setText(resultSet.getString("dept_no"));
+        tfHireDate.setText(resultSet.getString("hire_date"));
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+}
