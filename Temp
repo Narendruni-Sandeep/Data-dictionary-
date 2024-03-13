@@ -1,9 +1,16 @@
-private void clearDetailsPanel() {
-    tfEmpNo.setText("");
-    tfName.setText("");
-    tfJob.setText("");
-    tfSalary.setText("");
-    tfDeptNo.setText("");
-    tfHireDate.setText("");
-    // Add clearing of any additional fields if present
-}
+Panel tablePanel = new Panel(new GridLayout(1, 7)); // Adjusted for 7 columns
+        listSNo = new List();
+        listName = new List();
+        listEmpId = new List();
+        listJob = new List();
+        listSalary = new List();
+        listHireDate = new List();
+        listDeptNo = new List();
+        
+        tablePanel.add(listSNo);
+        tablePanel.add(listName);
+        tablePanel.add(listEmpId);
+        tablePanel.add(listJob);
+        tablePanel.add(listSalary);
+        tablePanel.add(listHireDate);
+        tablePanel.add(listDeptNo);
