@@ -1,7 +1,25 @@
-private void displayLastEmployee() {
-    try {
-        if (resultSet.last()) {
-            displayEmployeeDetails();
+private void addNewEmployee() {
+    // Collect input from text fields
+    String empNo = tfEmpNo.getText().trim();
+    String name = tfName.getText().trim();
+    String job = tfJob.getText().trim();
+    String salary = tfSalary.getText().trim();
+    String deptNo = tfDeptNo.getText().trim();
+    String hireDate = tfHireDate.getText().trim();
+
+    String sql = "INSERT INTO employees (emp_no, name, job, salary, dept_no, hire_date) VALUES (?, ?, ?, ?, ?, ?)";
+    try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        pstmt.setString(1, empNo);
+        pstmt.setString(2, name);
+        pstmt.setString(3, job);
+        pstmt.setBigDecimal(4, new BigDecimal(salary));
+        pstmt.setInt(5, Integer.parseInt(deptNo));
+        pstmt.setDate(6, Date.valueOf(hireDate));
+
+        int affectedRows = pstmt.executeUpdate();
+        if (affectedRows > 0) {
+            // Refresh the list to include the new employee
+            loadEmployees();
         }
     } catch (SQLException e) {
         e.printStackTrace();
