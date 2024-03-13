@@ -1,24 +1,18 @@
-private void addNewEmployee() {
-    // Collect input from text fields
+private void editEmployee() {
     String empNo = tfEmpNo.getText().trim();
-    String name = tfName.getText().trim();
-    String job = tfJob.getText().trim();
-    String salary = tfSalary.getText().trim();
-    String deptNo = tfDeptNo.getText().trim();
-    String hireDate = tfHireDate.getText().trim();
-
-    String sql = "INSERT INTO employees (emp_no, name, job, salary, dept_no, hire_date) VALUES (?, ?, ?, ?, ?, ?)";
+    String sql = "UPDATE employees SET name = ?, job = ?, salary = ?, dept_no = ?, hire_date = ? WHERE emp_no = ?";
     try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-        pstmt.setString(1, empNo);
-        pstmt.setString(2, name);
-        pstmt.setString(3, job);
-        pstmt.setBigDecimal(4, new BigDecimal(salary));
-        pstmt.setInt(5, Integer.parseInt(deptNo));
-        pstmt.setDate(6, Date.valueOf(hireDate));
+        // Assuming you have getters for text fields or access them directly
+        pstmt.setString(1, tfName.getText().trim());
+        pstmt.setString(2, tfJob.getText().trim());
+        pstmt.setBigDecimal(3, new BigDecimal(tfSalary.getText().trim()));
+        pstmt.setInt(4, Integer.parseInt(tfDeptNo.getText().trim()));
+        pstmt.setDate(5, Date.valueOf(tfHireDate.getText().trim()));
+        pstmt.setString(6, empNo);
 
         int affectedRows = pstmt.executeUpdate();
         if (affectedRows > 0) {
-            // Refresh the list to include the new employee
+            // Refresh the list to show updated details
             loadEmployees();
         }
     } catch (SQLException e) {
