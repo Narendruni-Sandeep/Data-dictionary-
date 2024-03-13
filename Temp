@@ -1,9 +1,7 @@
-private void displayPreviousEmployee() {
+private void displayLastEmployee() {
     try {
-        if (resultSet.previous()) {
+        if (resultSet.last()) {
             displayEmployeeDetails();
-        } else {
-            resultSet.next(); // Stay on the current row if there's no previous row
         }
     } catch (SQLException e) {
         e.printStackTrace();
