@@ -1,0 +1,90 @@
+// EmployeeCRUDLayout.java
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import java.util.Properties;
+
+public class EmployeeCRUDLayout extends Frame {
+
+    private TextField tfEmpNo, tfName, tfJob, tfSalary, tfDeptNo, tfHireDate;
+    private List listSNo, listName, listEmpId, listJob, listSalary, listHireDate, listDeptNo;
+    private Button btnFirst, btnNext, btnPrev, btnLast, btnAdd, btnEdit, btnDel, btnSave, btnClear, btnExit;
+    private Connection connection;
+    private Statement statement;
+    private ResultSet resultSet;
+
+    public EmployeeCRUDLayout() {
+        // GUI initialization code (unchanged)
+        // ...
+        initializeDatabase();
+    }
+
+    private void initializeDatabase() {
+        try {
+            String dbURL = "jdbc:postgresql://192.168.110.48/training";
+            Properties props = new Properties();
+            props.setProperty("user", "plf_training_admin");
+            props.setProperty("password", "pff123");
+            connection = DriverManager.getConnection(dbURL, props);
+            statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            loadEmployees();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadEmployees() {
+        try {
+            resultSet = statement.executeQuery("SELECT * FROM employees");
+            // Call method to update the GUI list
+            updateEmployeeList();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Implement methods to handle button clicks and update GUI
+    // For example:
+    private void displayFirstEmployee() {
+        try {
+            if (resultSet.first()) {
+                updateDetailsPanel();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateDetailsPanel() {
+        try {
+            tfEmpNo.setText(resultSet.getString("emp_no"));
+            tfName.setText(resultSet.getString("name"));
+            // ... set other text fields
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateEmployeeList() {
+        try {
+            listSNo.removeAll();
+            listName.removeAll();
+            // ... remove all items from other lists
+            resultSet.beforeFirst(); // Reset cursor
+            while (resultSet.next()) {
+                listSNo.add(resultSet.getString("s_no"));
+                listName.add(resultSet.getString("name"));
+                // ... add items to other lists
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Add more methods to handle Add, Edit, Delete, Save, Clear, Exit
+    // ...
+
+    public static void main(String[] args) {
+        new EmployeeCRUDLayout();
+    }
+}
