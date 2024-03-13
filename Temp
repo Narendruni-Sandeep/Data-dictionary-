@@ -1,16 +1,10 @@
-private void deleteEmployee() {
-    String empNo = tfEmpNo.getText().trim();
-    String sql = "DELETE FROM employees WHERE emp_no = ?";
-    try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-        pstmt.setString(1, empNo);
-
-        int affectedRows = pstmt.executeUpdate();
-        if (affectedRows > 0) {
-            // Record deleted successfully, now refresh the employee list
-            loadEmployees();
-        }
-    } catch (SQLException e) {
-        e.printStackTrace();
-        // Handle potential errors, such as attempting to delete a non-existent record
-    }
-}
+btnFirst = new Button("FIRST");
+btnNext = new Button("NEXT");
+btnPrev = new Button("PREV");
+btnLast = new Button("LAST");
+btnAdd = new Button("ADD");
+btnEdit = new Button("EDIT");
+btnDel = new Button("DEL");
+btnSave = new Button("SAVE");
+btnClear = new Button("CLEAR");
+btnExit = new Button("EXIT");
