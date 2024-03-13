@@ -1,0 +1,54 @@
+import java.awt.*;
+import java.awt.event.*;
+
+public class EmployeeCRUDLayout extends Frame {
+
+    public EmployeeCRUDLayout() {
+        setTitle("EMP CRUD");
+        setLayout(new BorderLayout(10, 10));
+
+        // Top panel with employee details
+        Panel detailsPanel = new Panel(new GridLayout(3, 4, 5, 5)); // 3 rows, 4 columns, paddings of 5
+        // Add labels and text fields to this panel
+        detailsPanel.add(new Label("EMP NO"));
+        detailsPanel.add(new TextField(10));
+        detailsPanel.add(new Label("NAME"));
+        detailsPanel.add(new TextField(10));
+        // ... add the rest of the labels and text fields similarly
+
+        // Middle panel with buttons
+        Panel buttonsPanel = new Panel(new FlowLayout(FlowLayout.CENTER));
+        // Add buttons to this panel
+        buttonsPanel.add(new Button("FIRST"));
+        buttonsPanel.add(new Button("NEXT"));
+        buttonsPanel.add(new Button("PREV"));
+        buttonsPanel.add(new Button("LAST"));
+        // ... add the rest of the CRUD buttons similarly
+
+        // Bottom panel simulating the employee table with List components
+        Panel tablePanel = new Panel(new GridLayout(1, 6)); // 1 row, 6 columns for S.No, Name, etc.
+        // Add lists to this panel, each list simulating a table column
+        tablePanel.add(new List());
+        tablePanel.add(new List());
+        tablePanel.add(new List());
+        // ... add the rest of the lists to simulate the table columns
+
+        // Add all sub-panels to the main frame
+        add(detailsPanel, BorderLayout.NORTH);
+        add(buttonsPanel, BorderLayout.CENTER);
+        add(tablePanel, BorderLayout.SOUTH);
+
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent we) {
+                dispose();
+            }
+        });
+
+        pack(); // Size the frame to fit the preferred sizes of its components
+        setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        new EmployeeCRUDLayout(); // Create the GUI
+    }
+}
