@@ -1,0 +1,364 @@
+package EmpCRUD;
+
+// EmployeeCRUDLayout.java
+import java.awt.BorderLayout;
+import java.awt.Button;
+import java.awt.Frame;
+import java.awt.GridLayout;
+import java.awt.Label;
+import java.awt.List;
+import java.awt.Panel;
+import java.awt.TextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Properties;
+
+public class EmployeeCRUDLayout extends Frame {
+
+	private TextField tfEmpNo, tfName, tfJob, tfSalary, tfDeptNo, tfHireDate;
+	private List listSNo, listName, listEmpId, listJob, listSalary, listHireDate, listDeptNo;
+	private Button btnFirst, btnNext, btnPrev, btnLast, btnAdd, btnEdit, btnDel, btnSave, btnClear, btnExit;
+	private Connection connection;
+	private Statement statement;
+	private ResultSet resultSet;
+
+	public EmployeeCRUDLayout() {
+		initializeAwt();
+		initializeDatabase();
+	}
+
+	private void initializeAwt() {
+		setTitle("EMP CRUD");
+		setLayout(new BorderLayout(10, 10));
+
+		// Top panel with employee details
+		Panel detailsPanel = new Panel(new GridLayout(0, 4, 5, 5)); // 3 rows, 4 columns, paddings of 5
+		// Add labels and text fields to this panel
+		detailsPanel.add(new Label("EMP NO"));
+		detailsPanel.add(new TextField(10));
+		detailsPanel.add(new Label("NAME"));
+		detailsPanel.add(new TextField(10));
+		detailsPanel.add(new Label("JOB"));
+		detailsPanel.add(new TextField(10));
+		detailsPanel.add(new Label("SALARY"));
+		detailsPanel.add(new TextField(10));
+		detailsPanel.add(new Label("DEPT NO"));
+		detailsPanel.add(new TextField(10));
+		detailsPanel.add(new Label("DATE"));
+		detailsPanel.add(new TextField(10));
+		// ... add the rest of the labels and text fields similarly
+
+		// Middle panel with buttons
+		Panel buttonsPanel = new Panel(new GridLayout(0, 4, 5, 5));
+		// Add buttons to this panel
+		btnFirst = new Button("FIRST");
+		btnNext = new Button("NEXT");
+		btnPrev = new Button("PREV");
+		btnLast = new Button("LAST");
+		btnAdd = new Button("ADD");
+		btnEdit = new Button("EDIT");
+		btnDel = new Button("DEL");
+		btnSave = new Button("SAVE");
+		btnClear = new Button("CLEAR");
+		btnExit = new Button("EXIT");
+
+		buttonsPanel.add(btnFirst);
+		buttonsPanel.add(btnNext);
+		buttonsPanel.add(btnPrev);
+		buttonsPanel.add(btnLast);
+		buttonsPanel.add(btnAdd);
+		buttonsPanel.add(btnEdit);
+		buttonsPanel.add(btnDel);
+		buttonsPanel.add(btnSave);
+		buttonsPanel.add(btnClear);
+		buttonsPanel.add(btnExit);
+
+		// ... add the rest of the CRUD buttons similarly
+		btnFirst.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				displayFirstEmployee();
+			}
+		});
+
+		btnNext.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				displayNextEmployee();
+			}
+		});
+
+		btnPrev.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				displayPreviousEmployee();
+			}
+		});
+
+		btnLast.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				displayLastEmployee();
+			}
+		});
+
+		btnAdd.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				addNewEmployee();
+			}
+		});
+
+		btnEdit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				editEmployee();
+			}
+		});
+
+		btnDel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				deleteEmployee();
+			}
+		});
+
+		// btnSave.addActionListener(new ActionListener() {
+		// public void actionPerformed(ActionEvent e) {
+		// saveEmployee();
+		// }
+		// });
+
+		btnClear.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				clearDetailsPanel();
+			}
+		});
+
+		btnExit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dispose(); // Close the application window
+			}
+		});
+
+		// Bottom panel simulating the employee table with List components
+		Panel tablePanel = new Panel(new GridLayout(1, 6)); // 1 row, 6 columns for S.No, Name, etc.
+		// Add lists to this panel, each list simulating a table column
+		tablePanel.add(new List());
+		tablePanel.add(new List());
+		tablePanel.add(new List());
+		// ... add the rest of the lists to simulate the table columns
+
+		// Add all sub-panels to the main frame
+		add(detailsPanel, BorderLayout.NORTH);
+		add(buttonsPanel, BorderLayout.CENTER);
+		add(tablePanel, BorderLayout.SOUTH);
+
+		addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent we) {
+				dispose();
+			}
+		});
+
+		setSize(500, 300); // Size the frame to fit the preferred sizes of its components
+		setVisible(true);
+
+	}
+
+	private void initializeDatabase() {
+		try {
+			String dbURL = "jdbc:postgresql://192.168.110.48/training";
+			Properties props = new Properties();
+			props.setProperty("user", "plf_training_admin");
+			props.setProperty("password", "pff123");
+			connection = DriverManager.getConnection(dbURL, props);
+			statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			loadEmployees();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void loadEmployees() {
+		try {
+			resultSet = statement.executeQuery("SELECT * FROM sandeep_employees");
+			// Call method to update the GUI list
+			updateEmployeeList();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// Implement methods to handle button clicks and update GUI
+	// For example:
+	private void displayFirstEmployee() {
+		try {
+			if (resultSet.first()) {
+				displayEmployeeDetails();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void displayEmployeeDetails() {
+		try {
+			tfEmpNo.setText(resultSet.getString("emp_no"));
+			tfName.setText(resultSet.getString("name"));
+			tfJob.setText(resultSet.getString("job"));
+			tfSalary.setText(resultSet.getString("salary"));
+			tfDeptNo.setText(resultSet.getString("dept_no"));
+			tfHireDate.setText(resultSet.getString("hire_date"));
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void displayNextEmployee() {
+		try {
+			if (resultSet.next()) {
+				displayEmployeeDetails();
+			} else {
+				resultSet.previous(); // Stay on the current row if there's no next row
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void displayPreviousEmployee() {
+		try {
+			if (resultSet.previous()) {
+				displayEmployeeDetails();
+			} else {
+				resultSet.next(); // Stay on the current row if there's no previous row
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void displayLastEmployee() {
+		try {
+			if (resultSet.last()) {
+				displayEmployeeDetails();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void addNewEmployee() {
+		// Collect input from text fields
+		String empNo = tfEmpNo.getText().trim();
+		String name = tfName.getText().trim();
+		String job = tfJob.getText().trim();
+		String salary = tfSalary.getText().trim();
+		String deptNo = tfDeptNo.getText().trim();
+		String hireDate = tfHireDate.getText().trim();
+
+		String sql = "INSERT INTO sandeep_employees (emp_no, name, job, salary, dept_no, hire_date) VALUES (?, ?, ?, ?, ?, ?)";
+		try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+			pstmt.setString(1, empNo);
+			pstmt.setString(2, name);
+			pstmt.setString(3, job);
+			pstmt.setBigDecimal(4, new BigDecimal(salary));
+			pstmt.setInt(5, Integer.parseInt(deptNo));
+			pstmt.setDate(6, Date.valueOf(hireDate));
+
+			int affectedRows = pstmt.executeUpdate();
+			if (affectedRows > 0) {
+				// Refresh the list to include the new employee
+				loadEmployees();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void editEmployee() {
+		String empNo = tfEmpNo.getText().trim();
+		String sql = "UPDATE sandeep_employees SET name = ?, job = ?, salary = ?, dept_no = ?, hire_date = ? WHERE emp_no = ?";
+		try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+			// Assuming you have getters for text fields or access them directly
+			pstmt.setString(1, tfName.getText().trim());
+			pstmt.setString(2, tfJob.getText().trim());
+			pstmt.setBigDecimal(3, new BigDecimal(tfSalary.getText().trim()));
+			pstmt.setInt(4, Integer.parseInt(tfDeptNo.getText().trim()));
+			pstmt.setDate(5, Date.valueOf(tfHireDate.getText().trim()));
+			pstmt.setString(6, empNo);
+
+			int affectedRows = pstmt.executeUpdate();
+			if (affectedRows > 0) {
+				// Refresh the list to show updated details
+				loadEmployees();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void deleteEmployee() {
+		String empNo = tfEmpNo.getText().trim();
+		String sql = "DELETE FROM sandeep_employees WHERE emp_no = ?";
+		try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+			pstmt.setString(1, empNo);
+
+			int affectedRows = pstmt.executeUpdate();
+			if (affectedRows > 0) {
+				// Record deleted successfully, now refresh the employee list
+				loadEmployees();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			// Handle potential errors, such as attempting to delete a non-existent record
+		}
+	}
+
+	private void clearDetailsPanel() {
+		tfEmpNo.setText("");
+		tfName.setText("");
+		tfJob.setText("");
+		tfSalary.setText("");
+		tfDeptNo.setText("");
+		tfHireDate.setText("");
+		// Add clearing of any additional fields if present
+	}
+
+	private void updateEmployeeList() {
+		try {
+			listSNo.removeAll();
+			listName.removeAll();
+			listEmpId.removeAll();
+			listJob.removeAll();
+			listSalary.removeAll();
+			listHireDate.removeAll();
+			listDeptNo.removeAll();
+
+			// ... remove all items from other lists
+			resultSet.beforeFirst(); // Reset cursor
+			while (resultSet.next()) {
+				listSNo.add(resultSet.getString("s_no"));
+				listName.add(resultSet.getString("name"));
+				listEmpId.add(resultSet.getString("empid"));
+				listJob.add(resultSet.getString("job"));
+				listSalary.add(resultSet.getString("salary"));
+				listHireDate.add(resultSet.getString("hire_date"));
+				listDeptNo.add(resultSet.getString("dept_no"));
+				// ... add items to other lists
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// Add more methods to handle Add, Edit, Delete, Save, Clear, Exit
+	// ...
+
+	public static void main(String[] args) {
+		new EmployeeCRUDLayout();
+	}
+}
