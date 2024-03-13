@@ -1,12 +1,21 @@
 CREATE TABLE employees (
-    empid SERIAL PRIMARY KEY,
-    ename VARCHAR(255) NOT NULL,
-    salary DECIMAL(10, 2) CHECK (salary > 0),
-    job VARCHAR(100) NOT NULL,
-    dept VARCHAR(50)
+    s_no SERIAL PRIMARY KEY,
+    emp_no VARCHAR(10) UNIQUE NOT NULL,
+    name VARCHAR(100),
+    job VARCHAR(50),
+    salary NUMERIC(10, 2),
+    dept_no VARCHAR(10),
+    hire_date DATE
 );
-INSERT INTO employees (ename, salary, job, dept) VALUES
-('John Doe', 75000.00, 'Software Engineer', 'Engineering'),
-('Jane Smith', 65000.00, 'Data Analyst', 'Marketing'),
-('Jim Bean', 85000.00, 'Project Manager', 'Operations'),
-('Jill Valentine', 90000.00, 'Security Specialist', 'Security');
+INSERT INTO employees (emp_no, name, job, salary, dept_no, hire_date)
+VALUES 
+('E1002', 'Alice Johnson', 'Database Administrator', 65000, 'D002', '2019-02-20'),
+('E1003', 'Bob Smith', 'Analyst', 55000, 'D001', '2018-03-10'),
+('E1004', 'Carol White', 'Product Manager', 75000, 'D003', '2021-04-25'),
+('E1005', 'David Brown', 'Software Engineer', 70000, 'D001', '2017-05-30'),
+('E1006', 'Eve Davis', 'Quality Assurance', 58000, 'D002', '2019-06-15'),
+('E1007', 'Frank Moore', 'Sales Manager', 62000, 'D004', '2020-07-22'),
+('E1008', 'Grace Lee', 'Human Resources', 54000, 'D005', '2018-08-09'),
+('E1009', 'Henry Wilson', 'Marketing', 56000, 'D004', '2021-09-18'),
+('E1010', 'Isabel Martinez', 'Customer Support', 50000, 'D003', '2017-10-27'),
+('E1011', 'Jack Taylor', 'Chief Financial Officer', 90000, 'D005', '2022-11-05');
