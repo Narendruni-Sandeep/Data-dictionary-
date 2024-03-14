@@ -1,8 +1,13 @@
-private int getLineIndexFromCaret(int caretPos) {
-    String textUpToCaret = employeeTextArea.getText().substring(0, caretPos);
-    int lineIndex = 0;
-    for (char ch : textUpToCaret.toCharArray()) {
-        if (ch == '\n') lineIndex++;
+private void displayEmployeeDetailsByLineIndex(int lineIndex) {
+    String[] lines = employeeTextArea.getText().split("\n");
+    if (lineIndex >= 1 && lineIndex < lines.length) {
+        String selectedLine = lines[lineIndex];
+        String[] details = selectedLine.trim().split("\\s+"); // Split by whitespace
+
+        tfEmpNo.setText(details[0]); // Assuming the first element is the employee number
+        tfName.setText(details[1]); // And so on for the other fields
+        // ... Continue for other fields
+
+        // You may need to adjust the indices based on your actual data format
     }
-    return lineIndex; // 0-based line index
 }
