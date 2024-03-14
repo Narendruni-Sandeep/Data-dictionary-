@@ -1,0 +1,419 @@
+package EmpCRUD;
+
+import java.awt.BorderLayout;
+import java.awt.Button;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.GridLayout;
+import java.awt.Label;
+import java.awt.Panel;
+import java.awt.TextArea;
+import java.awt.TextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+
+public class EmployeeCRUDLayout extends Frame {
+
+	private TextField tfEmpNo, tfName, tfJob, tfSalary, tfDeptNo, tfHireDate;
+	private TextArea employeeTextArea;// employeeText;
+	private Button btnFirst, btnNext, btnPrev, btnLast, btnAdd, btnEdit, btnDel, btnSave, btnClear, btnExit;
+	private Connection connection;
+	private Statement statement;
+	private ResultSet resultSet;
+	private List<String> employeeIdentifiers = new ArrayList<>();
+
+	// Constructor
+	public EmployeeCRUDLayout() {
+		initializeAwt();
+		initializeDatabase();
+	}
+
+	// Awt Screen
+	private void initializeAwt() {
+		setTitle("EMP CRUD");
+		setLayout(new BorderLayout(10, 10));
+
+		// Top panel with employee details
+		Panel detailsPanel = new Panel(new GridLayout(3, 4, 10, 10));// 3 rows 4 columns 10hgap 10vgap
+
+		tfEmpNo = new TextField(10);
+		tfName = new TextField(10);
+		tfJob = new TextField(10);
+		tfSalary = new TextField(10);
+		tfDeptNo = new TextField(10);
+		tfHireDate = new TextField(10);
+
+		detailsPanel.add(new Label("EMP NO"));
+		detailsPanel.add(tfEmpNo);
+		detailsPanel.add(new Label("NAME"));
+		detailsPanel.add(tfName);
+		detailsPanel.add(new Label("JOB"));
+		detailsPanel.add(tfJob);
+		detailsPanel.add(new Label("SALARY"));
+		detailsPanel.add(tfSalary);
+		detailsPanel.add(new Label("DEPT NO"));
+		detailsPanel.add(tfDeptNo);
+		detailsPanel.add(new Label("HIRE DATE"));
+		detailsPanel.add(tfHireDate);
+
+		// Middle panel with buttons
+		Panel buttonsPanel = new Panel(new GridLayout(3, 4, 5, 5));
+
+		// Adding buttons to this panel
+		btnFirst = new Button("FIRST");
+		btnNext = new Button("NEXT");
+		btnPrev = new Button("PREV");
+		btnLast = new Button("LAST");
+		btnAdd = new Button("ADD");
+		btnEdit = new Button("EDIT");
+		btnDel = new Button("DEL");
+		btnSave = new Button("SAVE");
+		btnClear = new Button("CLEAR");
+		btnExit = new Button("EXIT");
+
+		buttonsPanel.add(btnFirst);
+		buttonsPanel.add(btnNext);
+		buttonsPanel.add(btnPrev);
+		buttonsPanel.add(btnLast);
+		buttonsPanel.add(btnAdd);
+		buttonsPanel.add(btnEdit);
+		buttonsPanel.add(btnDel);
+		buttonsPanel.add(btnSave);
+		buttonsPanel.add(btnClear);
+		buttonsPanel.add(btnExit);
+
+		// Adding ActionListeners for the buttons
+		btnFirst.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				displayFirstEmployee();
+			}
+		});
+
+		btnNext.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				displayNextEmployee();
+			}
+		});
+
+		btnPrev.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				displayPreviousEmployee();
+			}
+		});
+
+		btnLast.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				displayLastEmployee();
+			}
+		});
+
+		btnAdd.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				addNewEmployee();
+			}
+		});
+
+		btnEdit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				editEmployee();
+			}
+		});
+
+		btnDel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				deleteEmployee();
+			}
+		});
+
+		btnClear.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				clearDetailsPanel();
+			}
+		});
+
+		btnExit.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				dispose(); // Close the application window
+			}
+		});
+
+		// Bottom Panel but using TextArea
+		employeeTextArea = new TextArea();
+		employeeTextArea.setEditable(false);
+		employeeTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+
+		// Adding MouseListener to employeeTextArea to note the position where it been clicked and get the index of row
+		employeeTextArea.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				try {
+					int mousePos = employeeTextArea.getCaretPosition();
+					String textUptoMousePos = employeeTextArea.getText().substring(0, mousePos);
+					int lineNo = textUptoMousePos.length() - textUptoMousePos.replace("\n", "").length() + 1;
+					if (lineNo - 1 < employeeIdentifiers.size()) {
+						String identifier = employeeIdentifiers.get(lineNo - 1);
+						displayEmployeeDetailsByIdentifier(identifier);
+					}
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			}
+		});
+		
+		// Adding Panels to Main Frame and setting them at the position
+		add(detailsPanel, BorderLayout.NORTH);
+		add(buttonsPanel, BorderLayout.CENTER);
+		add(employeeTextArea, BorderLayout.SOUTH);
+		// add(employeeText, BorderLayout.SOUTH);
+
+		// WindowListener for closing the Screen
+		addWindowListener(new WindowAdapter() {
+			public void windowClosing(WindowEvent we) {
+				dispose();
+			}
+		});
+
+		// Setting Frame Size
+		setSize(800, 500);
+		setVisible(true);
+
+	}
+
+	// DataBase Connection
+	private void initializeDatabase() {
+
+		try {
+			String dbURL = "jdbc:postgresql://192.168.110.48/training";
+			Properties props = new Properties();
+			props.setProperty("user", "plf_training_admin");
+			props.setProperty("password", "pff123");
+			connection = DriverManager.getConnection(dbURL, props);
+			statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			loadEmployees();// Calling loadEmployees method to load the data into ResultSet
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void loadEmployees() {
+		try {
+			resultSet = statement.executeQuery("SELECT * FROM sandeep_employees");
+			updateEmployeeList();// Calling updateEmployeeList method to update the Screen list
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// Implementing methods to handle button clicks and update GUI
+
+	private void displayEmployeeDetails() {
+		try {
+			tfEmpNo.setText(resultSet.getString("emp_no"));
+			tfName.setText(resultSet.getString("name"));
+			tfJob.setText(resultSet.getString("job"));
+			tfSalary.setText(resultSet.getString("salary"));
+			tfDeptNo.setText(resultSet.getString("dept_no"));
+			tfHireDate.setText(resultSet.getString("hire_date"));
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// Method to display employee details based on index
+	private void displayEmployeeDetailsByIdentifier(String identifier) {
+		try {
+			// Since we cannot use resultSet.absolute(), we will iterate over resultSet
+			resultSet.beforeFirst();
+			while (resultSet.next()) {
+				if (resultSet.getString("emp_no").equals(identifier)) {
+					tfEmpNo.setText(resultSet.getString("emp_no"));
+					tfName.setText(resultSet.getString("name"));
+					tfJob.setText(resultSet.getString("job"));
+					tfSalary.setText(resultSet.getString("salary"));
+					tfDeptNo.setText(resultSet.getString("dept_no"));
+					tfHireDate.setText(resultSet.getString("hire_date"));
+					break; // Stop once the matching row is found
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// First button
+	private void displayFirstEmployee() {
+		try {
+			if (resultSet.first()) {
+				displayEmployeeDetails();// Calling displayEmployeeDetails method to get the details into Details Panel
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// Next button
+	private void displayNextEmployee() {
+		try {
+			if (resultSet.next()) {
+				displayEmployeeDetails();
+			} else {
+				resultSet.previous();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// Previous button
+	private void displayPreviousEmployee() {
+		try {
+			if (resultSet.previous()) {
+				displayEmployeeDetails();
+			} else {
+				resultSet.next();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// Last button
+	private void displayLastEmployee() {
+		try {
+			if (resultSet.last()) {
+				displayEmployeeDetails();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// Add Button
+	private void addNewEmployee() {
+
+		String empNo = tfEmpNo.getText().trim();
+		String name = tfName.getText().trim();
+		String job = tfJob.getText().trim();
+		String salary = tfSalary.getText().trim();
+		String deptNo = tfDeptNo.getText().trim();
+		String hireDate = tfHireDate.getText().trim();
+
+		String sql = "INSERT INTO sandeep_employees (emp_no, name, job, salary, dept_no, hire_date) VALUES (?, ?, ?, ?, ?, ?)";
+		try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+			pstmt.setString(1, empNo);
+			pstmt.setString(2, name);
+			pstmt.setString(3, job);
+			pstmt.setBigDecimal(4, new BigDecimal(salary));
+			pstmt.setString(5, deptNo);
+			pstmt.setDate(6, Date.valueOf(hireDate));
+
+			int affectedRows = pstmt.executeUpdate();
+			if (affectedRows > 0) {
+
+				loadEmployees();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// Edit button
+	private void editEmployee() {
+		String empNo = tfEmpNo.getText().trim();
+		String sql = "UPDATE sandeep_employees SET name = ?, job = ?, salary = ?, dept_no = ?, hire_date = ? WHERE emp_no = ?";
+		try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+			pstmt.setString(1, tfName.getText().trim());
+			pstmt.setString(2, tfJob.getText().trim());
+			pstmt.setBigDecimal(3, new BigDecimal(tfSalary.getText().trim()));
+			pstmt.setString(4, tfDeptNo.getText().trim());
+			pstmt.setDate(5, Date.valueOf(tfHireDate.getText().trim()));
+			pstmt.setString(6, empNo);
+
+			int affectedRows = pstmt.executeUpdate();
+			if (affectedRows > 0) {
+
+				loadEmployees();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// Delete Button
+	private void deleteEmployee() {
+		String empNo = tfEmpNo.getText().trim();
+		String sql = "DELETE FROM sandeep_employees WHERE emp_no = ?";
+		try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+			pstmt.setString(1, empNo);
+
+			int affectedRows = pstmt.executeUpdate();
+			if (affectedRows > 0) {
+				loadEmployees();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// Clear button
+	private void clearDetailsPanel() {
+		tfEmpNo.setText("");
+		tfName.setText("");
+		tfJob.setText("");
+		tfSalary.setText("");
+		tfDeptNo.setText("");
+		tfHireDate.setText("");
+
+	}
+
+	private void updateEmployeeList() {
+		try {
+			employeeIdentifiers.clear();
+			StringBuilder sb = new StringBuilder();
+			sb.append(padRight("S.No", 6)).append(padRight("EmpNo", 10)).append(padRight("Name", 20))
+					.append(padRight("Job", 25)).append(padRight("Salary", 10)).append(padRight("DeptNo", 8))
+					.append(padRight("Hire Date", 10)).append("\n");
+			int serialNumber = 1;
+			while (resultSet.next()) {
+				sb.append(padRight(String.valueOf(serialNumber++), 6))
+						.append(padRight(resultSet.getString("emp_no"), 10))
+						.append(padRight(resultSet.getString("name"), 20))
+						.append(padRight(resultSet.getString("job"), 25))
+						.append(padRight(resultSet.getString("salary"), 10))
+						.append(padRight(resultSet.getString("dept_no"), 8))
+						.append(padRight(resultSet.getString("hire_date"), 10)).append("\n");
+			}
+			employeeTextArea.setText(sb.toString());
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// Setting the Alignment of the Bottom table
+	private String padRight(String s, int n) {
+		if (s.length() > n) {
+			return s.substring(0, n);
+		} else {
+			return String.format("%-" + n + "s", s);
+		}
+	}
+
+	// Main method
+	public static void main(String[] args) {
+		new EmployeeCRUDLayout();
+	}
+}
