@@ -1,52 +1,14 @@
-// ... Other class code
-
-public EmployeeCRUDLayout() {
-    // ... Constructor code
-
-    // Add mouse listener to employeeTextArea
-    employeeTextArea.addMouseListener(new MouseAdapter() {
-        public void mouseClicked(MouseEvent e) {
-            // Get the selected line number
-            int selectedIndex = getSelectedIndex(employeeTextArea.getCaretPosition());
-            if (selectedIndex != -1) {
-                // Fetch and display details for the selected line
-                displayEmployeeDetails(employeeIdentifiers.get(selectedIndex));
+employeeTextArea.addMouseListener(new MouseAdapter() {
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        try {
+            int caretPos = employeeTextArea.getCaretPosition();
+            int lineIndex = getLineIndexFromCaret(caretPos);
+            if (lineIndex > 0) { // To avoid header line
+                displayEmployeeDetailsByLineIndex(lineIndex);
             }
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
-    });
-}
-
-// Utility method to get the selected index in the TextArea based on the caret position
-private int getSelectedIndex(int caretPosition) {
-    try {
-        int lineNumber = employeeTextArea.getLineOfOffset(caretPosition);
-        return lineNumber - 1; // -1 to account for header row
-    } catch (Exception e) {
-        e.printStackTrace();
-        return -1;
     }
-}
-
-private void displayEmployeeDetails(String empNo) {
-    try {
-        // Here we fetch the details again from the database, ideally you would use a cache or a map
-        PreparedStatement pstmt = connection.prepareStatement("SELECT * FROM sandeep_employees WHERE emp_no = ?");
-        pstmt.setString(1, empNo);
-        ResultSet rs = pstmt.executeQuery();
-
-        if (rs.next()) {
-            tfEmpNo.setText(rs.getString("emp_no"));
-            tfName.setText(rs.getString("name"));
-            tfJob.setText(rs.getString("job"));
-            tfSalary.setText(rs.getString("salary"));
-            tfDeptNo.setText(rs.getString("dept_no"));
-            tfHireDate.setText(rs.getString("hire_date"));
-        }
-        rs.close();
-        pstmt.close();
-    } catch (SQLException e) {
-        e.printStackTrace();
-    }
-}
-
-// ... Rest of the class code
+});
