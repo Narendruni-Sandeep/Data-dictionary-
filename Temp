@@ -1,14 +1,8 @@
-employeeTextArea.addMouseListener(new MouseAdapter() {
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        try {
-            int caretPos = employeeTextArea.getCaretPosition();
-            int lineIndex = getLineIndexFromCaret(caretPos);
-            if (lineIndex > 0) { // To avoid header line
-                displayEmployeeDetailsByLineIndex(lineIndex);
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+private int getLineIndexFromCaret(int caretPos) {
+    String textUpToCaret = employeeTextArea.getText().substring(0, caretPos);
+    int lineIndex = 0;
+    for (char ch : textUpToCaret.toCharArray()) {
+        if (ch == '\n') lineIndex++;
     }
-});
+    return lineIndex; // 0-based line index
+}
