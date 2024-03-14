@@ -1,17 +1,22 @@
-private void updateEmployeeList() {
+    private void updateEmployeeList() {
         try {
             StringBuilder sb = new StringBuilder();
             while (resultSet.next()) {
-                sb.append(resultSet.getString("s_no")).append("\t")
-                  .append(resultSet.getString("emp_no")).append("\t")
-                  .append(resultSet.getString("name")).append("\t")
-                  .append(resultSet.getString("job")).append("\t")
-                  .append(resultSet.getString("salary")).append("\t")
-                  .append(resultSet.getString("dept_no")).append("\t")
-                  .append(resultSet.getString("hire_date")).append("\n");
+                sb.append(padRight(resultSet.getString("s_no"), 6))
+                  .append(padRight(resultSet.getString("emp_no"), 10))
+                  .append(padRight(resultSet.getString("name"), 20))
+                  .append(padRight(resultSet.getString("job"), 15))
+                  .append(padRight(resultSet.getString("salary"), 10))
+                  .append(padRight(resultSet.getString("dept_no"), 8))
+                  .append(padRight(resultSet.getString("hire_date"), 10))
+                  .append("\n");
             }
             employeeTextArea.setText(sb.toString());
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private String padRight(String s, int n) {
+        return String.format("%-" + n + "s", s);
     }
