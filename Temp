@@ -1,13 +1,11 @@
 package EmpCRUD;
 
-// EmployeeCRUDLayout.java
 import java.awt.BorderLayout;
 import java.awt.Button;
 import java.awt.Font;
 import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.Label;
-import java.awt.List;
 import java.awt.Panel;
 import java.awt.TextArea;
 import java.awt.TextField;
@@ -29,24 +27,25 @@ public class EmployeeCRUDLayout extends Frame {
 
 	private TextField tfEmpNo, tfName, tfJob, tfSalary, tfDeptNo, tfHireDate;
 	private TextArea employeeTextArea;
-	private List listSNo, listName, listEmpId, listJob, listSalary, listHireDate, listDeptNo;
 	private Button btnFirst, btnNext, btnPrev, btnLast, btnAdd, btnEdit, btnDel, btnSave, btnClear, btnExit;
 	private Connection connection;
 	private Statement statement;
 	private ResultSet resultSet;
 
+	// Constructor
 	public EmployeeCRUDLayout() {
 		initializeAwt();
 		initializeDatabase();
 	}
 
+	// Awt Screen
 	private void initializeAwt() {
 		setTitle("EMP CRUD");
 		setLayout(new BorderLayout(10, 10));
 
 		// Top panel with employee details
-		Panel detailsPanel = new Panel(new GridLayout(2, 4)); // 3 rows, 4 columns, paddings of 5
-		// Add labels and text fields to this panel
+		Panel detailsPanel = new Panel(new GridLayout(3, 4, 10, 10));// 3 rows 4 columns 10hgap 10vgap
+
 		tfEmpNo = new TextField(10);
 		tfName = new TextField(10);
 		tfJob = new TextField(10);
@@ -66,11 +65,11 @@ public class EmployeeCRUDLayout extends Frame {
 		detailsPanel.add(tfDeptNo);
 		detailsPanel.add(new Label("HIRE DATE"));
 		detailsPanel.add(tfHireDate);
-		// ... add the rest of the labels and text fields similarly
 
 		// Middle panel with buttons
 		Panel buttonsPanel = new Panel(new GridLayout(3, 4, 5, 5));
-		// Add buttons to this panel
+
+		// Adding buttons to this panel
 		btnFirst = new Button("FIRST");
 		btnNext = new Button("NEXT");
 		btnPrev = new Button("PREV");
@@ -93,7 +92,7 @@ public class EmployeeCRUDLayout extends Frame {
 		buttonsPanel.add(btnClear);
 		buttonsPanel.add(btnExit);
 
-		// ... add the rest of the CRUD buttons similarly
+		// Adding ActionListeners for the buttons
 		btnFirst.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				displayFirstEmployee();
@@ -136,12 +135,6 @@ public class EmployeeCRUDLayout extends Frame {
 			}
 		});
 
-		// btnSave.addActionListener(new ActionListener() {
-		// public void actionPerformed(ActionEvent e) {
-		// saveEmployee();
-		// }
-		// });
-
 		btnClear.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				clearDetailsPanel();
@@ -154,49 +147,32 @@ public class EmployeeCRUDLayout extends Frame {
 			}
 		});
 
-		// Bottom panel simulating the employee table with List components
+		// Bottom Panel but using TextArea
 		employeeTextArea = new TextArea();
 		employeeTextArea.setEditable(false);
 		employeeTextArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-		// Add lists to this panel, each list simulating a table column
 
-		// Panel tablePanel = new Panel(new GridLayout(1, 7)); // Adjusted for 7 columns
-
-		// listSNo = new List();
-		// listName = new List();
-		// listEmpId = new List();
-		// listJob = new List();
-		// listSalary = new List();
-		// listHireDate = new List();
-		// listDeptNo = new List();
-		//
-		//
-		// tablePanel.add(listSNo);
-		// tablePanel.add(listName);
-		// tablePanel.add(listEmpId);
-		// tablePanel.add(listJob);
-		// tablePanel.add(listSalary);
-		// tablePanel.add(listHireDate);
-		// tablePanel.add(listDeptNo);
-		// ... add the rest of the lists to simulate the table columns
-
-		// Add all sub-panels to the main frame
+		// Adding Panels to Main Frame and setting them at the position
 		add(detailsPanel, BorderLayout.NORTH);
 		add(buttonsPanel, BorderLayout.CENTER);
 		add(employeeTextArea, BorderLayout.SOUTH);
 
+		// WindowListener for closing the Screen
 		addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent we) {
 				dispose();
 			}
 		});
 
-		setSize(800, 500); // Size the frame to fit the preferred sizes of its components
+		// Setting Frame Size
+		setSize(800, 500);
 		setVisible(true);
 
 	}
 
+	// DataBase Connection
 	private void initializeDatabase() {
+
 		try {
 			String dbURL = "jdbc:postgresql://192.168.110.48/training";
 			Properties props = new Properties();
@@ -204,7 +180,7 @@ public class EmployeeCRUDLayout extends Frame {
 			props.setProperty("password", "pff123");
 			connection = DriverManager.getConnection(dbURL, props);
 			statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-			loadEmployees();
+			loadEmployees();// Calling loadEmployees method to load the data into ResultSet
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -213,24 +189,13 @@ public class EmployeeCRUDLayout extends Frame {
 	private void loadEmployees() {
 		try {
 			resultSet = statement.executeQuery("SELECT * FROM sandeep_employees");
-			// Call method to update the GUI list
-			updateEmployeeList();
+			updateEmployeeList();// Calling updateEmployeeList method to update the Screen list
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 
-	// Implement methods to handle button clicks and update GUI
-	// For example:
-	private void displayFirstEmployee() {
-		try {
-			if (resultSet.first()) {
-				displayEmployeeDetails();
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
+	// Implementing methods to handle button clicks and update GUI
 
 	private void displayEmployeeDetails() {
 		try {
@@ -245,30 +210,44 @@ public class EmployeeCRUDLayout extends Frame {
 		}
 	}
 
+	// First button
+	private void displayFirstEmployee() {
+		try {
+			if (resultSet.first()) {
+				displayEmployeeDetails();// Calling displayEmployeeDetails method to get the details into Details Panel
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	// Next button
 	private void displayNextEmployee() {
 		try {
 			if (resultSet.next()) {
 				displayEmployeeDetails();
 			} else {
-				resultSet.previous(); // Stay on the current row if there's no next row
+				resultSet.previous();
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 
+	// Previous button
 	private void displayPreviousEmployee() {
 		try {
 			if (resultSet.previous()) {
 				displayEmployeeDetails();
 			} else {
-				resultSet.next(); // Stay on the current row if there's no previous row
+				resultSet.next();
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 
+	// Last button
 	private void displayLastEmployee() {
 		try {
 			if (resultSet.last()) {
@@ -279,8 +258,9 @@ public class EmployeeCRUDLayout extends Frame {
 		}
 	}
 
+	// Add Button
 	private void addNewEmployee() {
-		// Collect input from text fields
+
 		String empNo = tfEmpNo.getText().trim();
 		String name = tfName.getText().trim();
 		String job = tfJob.getText().trim();
@@ -299,7 +279,7 @@ public class EmployeeCRUDLayout extends Frame {
 
 			int affectedRows = pstmt.executeUpdate();
 			if (affectedRows > 0) {
-				// Refresh the list to include the new employee
+
 				loadEmployees();
 			}
 		} catch (SQLException e) {
@@ -307,11 +287,11 @@ public class EmployeeCRUDLayout extends Frame {
 		}
 	}
 
+	// Edit button
 	private void editEmployee() {
 		String empNo = tfEmpNo.getText().trim();
 		String sql = "UPDATE sandeep_employees SET name = ?, job = ?, salary = ?, dept_no = ?, hire_date = ? WHERE emp_no = ?";
 		try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-			// Assuming you have getters for text fields or access them directly
 			pstmt.setString(1, tfName.getText().trim());
 			pstmt.setString(2, tfJob.getText().trim());
 			pstmt.setBigDecimal(3, new BigDecimal(tfSalary.getText().trim()));
@@ -321,7 +301,7 @@ public class EmployeeCRUDLayout extends Frame {
 
 			int affectedRows = pstmt.executeUpdate();
 			if (affectedRows > 0) {
-				// Refresh the list to show updated details
+
 				loadEmployees();
 			}
 		} catch (SQLException e) {
@@ -329,6 +309,7 @@ public class EmployeeCRUDLayout extends Frame {
 		}
 	}
 
+	// Delete Button
 	private void deleteEmployee() {
 		String empNo = tfEmpNo.getText().trim();
 		String sql = "DELETE FROM sandeep_employees WHERE emp_no = ?";
@@ -337,15 +318,14 @@ public class EmployeeCRUDLayout extends Frame {
 
 			int affectedRows = pstmt.executeUpdate();
 			if (affectedRows > 0) {
-				// Record deleted successfully, now refresh the employee list
 				loadEmployees();
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-			// Handle potential errors, such as attempting to delete a non-existent record
 		}
 	}
 
+	// Clear button
 	private void clearDetailsPanel() {
 		tfEmpNo.setText("");
 		tfName.setText("");
@@ -353,24 +333,8 @@ public class EmployeeCRUDLayout extends Frame {
 		tfSalary.setText("");
 		tfDeptNo.setText("");
 		tfHireDate.setText("");
-		// Add clearing of any additional fields if present
-	}
 
-	// private void updateEmployeeList() {
-	// try {
-	// StringBuilder sb = new StringBuilder();
-	// while (resultSet.next()) {
-	// sb.append(resultSet.getString("s_no")).append("\t").append(resultSet.getString("emp_no")).append("\t")
-	// .append(resultSet.getString("name")).append("\t").append(resultSet.getString("job"))
-	// .append("\t").append(resultSet.getString("salary")).append("\t")
-	// .append(resultSet.getString("dept_no")).append("\t").append(resultSet.getString("hire_date"))
-	// .append("\n");
-	// }
-	// employeeTextArea.setText(sb.toString());
-	// } catch (SQLException e) {
-	// e.printStackTrace();
-	// }
-	// }
+	}
 
 	private void updateEmployeeList() {
 		try {
@@ -389,6 +353,7 @@ public class EmployeeCRUDLayout extends Frame {
 		}
 	}
 
+	// Setting the Alignment of the Bottom table
 	private String padRight(String s, int n) {
 		if (s.length() > n) {
 			return s.substring(0, n);
@@ -397,9 +362,7 @@ public class EmployeeCRUDLayout extends Frame {
 		}
 	}
 
-	// Add more methods to handle Add, Edit, Delete, Save, Clear, Exit
-	// ...
-
+	// Main method
 	public static void main(String[] args) {
 		new EmployeeCRUDLayout();
 	}
