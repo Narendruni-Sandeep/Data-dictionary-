@@ -1,0 +1,23 @@
+CREATE TABLE employee (
+    employee_id SERIAL PRIMARY KEY,
+    first_name VARCHAR(50),
+    last_name VARCHAR(50),
+    email VARCHAR(100),
+    phone_number VARCHAR(15),
+    hire_date DATE,
+    job_id VARCHAR(10),
+    salary NUMERIC(8,2),
+    manager_id INTEGER,
+    department_id INTEGER
+);
+INSERT INTO employee (first_name, last_name, email, phone_number, hire_date, job_id, salary, manager_id, department_id) VALUES
+('John', 'Doe', 'johndoe@example.com', '1234567890', '2024-01-10', 'DEV01', 60000.00, 1, 10),
+('Jane', 'Doe', 'janedoe@example.com', '0987654321', '2024-02-20', 'DEV02', 62000.00, 2, 20),
+('Mike', 'Smith', 'mikesmith@example.com', '1234512345', '2024-03-15', 'DEV03', 63000.00, 3, 30),
+('Sara', 'Johnson', 'sarajohnson@example.com', '5432167890', '2024-04-01', 'MAN01', 65000.00, 4, 40),
+('Chris', 'Lee', 'chrislee@example.com', '6789054321', '2024-05-21', 'MAN02', 67000.00, 5, 50),
+('Pat', 'Brown', 'patbrown@example.com', '9876543210', '2024-06-30', 'HR01', 55000.00, 6, 60),
+('Alex', 'Garcia', 'alexgarcia@example.com', '5678901234', '2024-07-15', 'HR02', 56000.00, 7, 70),
+('Taylor', 'Wilson', 'taylorwilson@example.com', '2345678901', '2024-08-05', 'SALES01', 57000.00, 8, 80),
+('Jordan', 'Miller', 'jordanmiller@example.com', '3456789012', '2024-09-10', 'SALES02', 59000.00, 9, 90),
+('Casey', 'Davis', 'caseydavis@example.com', '4567890123', '2024-10-20', 'TECH01', 61000.00, 10, 100);
