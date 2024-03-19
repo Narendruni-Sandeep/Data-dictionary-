@@ -1,0 +1,87 @@
+Practice Questions on Inheritance and 
+classes
+1. Write a class 'Employee' with the following Data Members and 
+Methods 
+Data Members 
+int empno 
+string name 
+string job 
+double salary 
+Constructors : Write Overloaded constructors to accept the following combinations 
+1. All fields 
+2. empno & Salary 
+3. Empno,name & Salary 
+Methods/functions 
+void displayProfile() -Display employee details 
+double calMonthlyPayroll(int nod,int attend,int noh) -calculate the payroll based on 
+the following criteria and return the salary per month. 
+No of Leaves (nol) = nod -noh -attend 
+no of payroll days (nopd) = nod-nol 
+payroll = salary per month/30 * nopd 
+Write Main Method to demonstrate the usage of the object and method calls on 
+that. 
+ 
+10Marks
+2. Bank offers various types of loans like Gold Loan, Vehicle Loan, and Mortgage Loan 
+to customers. Write an abstract class to represent Loan class with the following 
+properties and methods 
+Properties: 
+-AccountNo 
+-AccountTitle 
+-Address 
+-LoanType 
+-LoanRemarks 
+-LoanAmount 
+-NoOfInstallments 
+-InstallmentsPaid 
+-TotalToBePaid 
+-TotalPaid 
+-Nominee 
+-LoanTerm (no of Months) 
+-StartDate 
+-RateOfInt (static & readonly) 
+Methods: 
+-PayEMI(doube amt) -to add the amount to Loan's totalPaid 
+-CalEMI() -to Calculate the EMI for the given principal amount, rate of interest and 
+loan term. 
+-CalTotalToBePaid() -abstract method 
+3.
+What is the output of the following code 
+ 
+class IncDecOperatorEx1{ 
+public static void main(String[] args){ 
+int x,y,z; 
+x=y=z=200; 
+x=y++ + z-- + ++y; 
+y=--z + x++ - z--; 
+z=x-- + y-- + --x; 
+System.out.println(x); 
+System.out.println(y); 
+System.out.println(z); 
+} 
+} 
+ 
+4. Write a program to remove the duplicate elements of a given array and return the 
+new length of the array. 
+Sample array: [20, 20, 30, 40, 50, 50, 50] 
+After removing the duplicate elements the program should return 4 as the new 
+length of the array. 
+ 
+5. Create a class 'Degree' having a method 'getDegree' that prints "I got a degree". It 
+has two subclasses namely 'Undergraduate' and 'Postgraduate' each having a 
+method with the same name that prints "I am an Undergraduate" and "I am a 
+Postgraduate" respectively. Call the method by creating an object of each of the 
+three classes. 
+4. Create a class named 'Member' having the following members:
+Data members
+1 - Name
+2 - Age
+3 - Phone number
+4 - Address
+5 - Salary
+It also has a method named 'printSalary' which prints the salary of the members.
+Two classes 'Employee' and 'Manager' inherits the 'Member' class. The 'Employee' 
+and 'Manager' classes have data members 'specialization' and 'department' 
+respectively. Now, assign name, age, phone number, address and salary to an 
+employee and a manager by making an object of both of these classes and print the 
+same. 
