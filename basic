@@ -1,0 +1,43 @@
+Simple Prog Logic Practice Jul 2022 
+Simple Programming Logic Practice Tasks (Java)
+1. A number is SPECIAL if it is exactly divisible by 15, a number is considered is BIG 
+if it is greater than 999, a number is WIERED if it is exactly divisible by 5 and 6 
+but not by 18. A number is SCARY if it is BIG or WEIRD. Write a program for 
+checking whether the given number belongs to any of the above.
+2. Write a program to convert the given centigrade temperature to foreign heat
+3. Write a program to read three positive numbers and print the min, max and 
+average of the given.
+4. Write a program to read the month in integer and print the month name. Print 
+"Invalid month" message if invalid number is given.
+5. Write a program to print alphabets in lowercase from 'a' to 'z'.
+6. Write a program to print the sum of alternate 7 divisible numbers between 1 and 
+200.
+7. Write a program to print the numbers from 1 to 100 with five values per line, 
+two blank spaces between values.
+8. Write a program to print the conversion table to change the temperature in 
+centigrade(C) to temperature in Fahrenheit (F) for all temperatures between 28C 
+to 50C.Use the formula F= (9/5) C+32.
+9. Write a program to read in a series of positive and negative numbers and print 
+each number with its square and its square root.
+10. Write a program to check the given number for palindrome number
+11. Write a program to check the given number for Armstrong number
+12. Write a program to print all palindrome numbers between 100 and 200.
+13. Write a program to print alternative prime numbers between 1 and 100 in 
+reverse direction.
+14. Write a program to read series of numbers and print all prime, Armstrong and 
+palindrome numbers.
+15. Write a program to print the binary equivalent for the given decimal number
+16. Write a program to print the decimal equivalent for the given binary number
+17. Write a program to print the Fibonacci series for the given number of terms.
+18. Write a program to print the sum of given numbers through command line.
+19. Write a program to print the pyramid of '$' for the given number of lines
+20. Write a program to print the diamond 'K' for the given number of lines.
+21. Write a program to find out the factorial of a given number using recursion.
+22. Write a program to find out the given number for Fibonacci number using 
+recursion logic
+23. Write a program to display the sum of Fibonacci numbers for the given number 
+of terms.
+24. Write a user defined function to evaluate the password under the categories 
+week pwd (No capital letter, numerical value and special character), medium (At 
+least one capital letter), strong(at least one capital letter, one numeric and one 
+special character) and display the strength of the password.
