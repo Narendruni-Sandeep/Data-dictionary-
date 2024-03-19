@@ -1,0 +1,72 @@
+Practice Exercise on Classes & Inheritance 
+1. Create the TrainTicket class with the following members and methods. Write a class TestTicket to 
+demonstrate the use of the TrainTicket methods
+Members
+-TicketNo
+-TrainNo
+-TravelDate
+-Source
+-Destination
+-Passengers (Array/Collection of Passenger Class)
+-Name
+-Age
+-Gender
+Methods
+-void displayTicketDetails() -To display ticket info
+-float calculateFinalFare(double basefare) -should calculate the actual fare based on the 
+base fare per passenger given and return it. While calculating the fare, the following conditions to be 
+taken.
+a. Passengers with below 5 years age will be given 100% discount
+b. Passengers with 5-12 will be given 50% discount
+c. Male Passengers with 65 above or female passengers with 58 above to be given 25% discount.
+2. Write a class 'Employee' with the following Data Members and Methods
+Data Members
+int empno
+string name
+string job
+double salary
+Constructors : Write Overloaded constructors to accept the following combinations
+1. All fields
+2. empno & Salary
+3. Empno,name & Salary
+Methods/functions
+void displayProfile() -Display employee details
+double calMonthlyPayroll(int nod,int attend,int noh) -calculate the payroll based on the 
+following criteria and return the salary per month.
+No of Leaves (nol) = nod -noh -attend 
+no of payroll days (nopd) = nod-nol
+payroll = salary per month/30 * nopd
+Write Main Method to demonstrate the usage of the object and method calls on that.
+3. Bank offers various types of loans like Gold Loan, Vehicle Loan, and Mortgage Loan to customers. 
+Write an abstract class to represent Loan class with the following properties and methods
+Properties:
+-AccountNo
+-AccountTitle
+-Address
+-LoanType
+-LoanRemarks
+-LoanAmount
+-NoOfInstallments
+-InstallmentsPaid
+-TotalToBePaid
+-TotalPaid
+-Nominee
+-LoanTerm (no of Months)
+-StartDate
+-RateOfInt (static & readonly)
+Methods:
+-PayEMI(doube amt) -to add the amount to Loan's totalPaid
+-CalEMI() -to Calculate the EMI for the given principal amount, rate of interest and 
+loan term.
+-CalTotalToBePaid() -abstract method
+4. Write 3 concrete classes for GoldLoan, VehicleLoan, MortguageLoan inheriting the Loan class by 
+overriding CalTotalToBePaid() method and CalEMI(). Try to put meaningful implementation for CalEMI() 
+and CalTotalToBePaid() in each of the sub class.
+5. Write a class EMICalculator with a method GenerateEMI(..) with the following specification to 
+calculate the EMI for the given Loan account type and other details
+static void GenerateEMI(Loan ln,double prnpleamt,double rateofint,int term)
+6. Write a class TotalToPayCalculator with a method CalTotalToPay(..) with the following specification to 
+calculate the total amount to be paid for the given Loan account type and other details
+static void CalTotalToPay(Loan ln,double prnpleamt,int term)
+7. Write a class with an entry point to demonstrate the usage of EMICalcultor class method 
+GenerateEMI() and TotalToPayCalculator method CalTotalToPay(..)
