@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style1.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <title>Amazon</title>
+</head>
+<body>
+    <div class="whole-page" style="height: 1000px;">
+
+        <header>
+            <div class="navbar ">
+                <div class="nav-logo border">
+                    <div class="logo padding-" ></div>
+                </div>
+                <div class="nav-address border padding-">
+                    <p class="address-first" > Deliver to</p>
+                    <div class="address-icon">
+                        <i class="fa-solid fa-location-dot"> </i>
+                        <p class="address-second"> India</p>
+                    </div>
+                </div>
+                <div class="navsearch">
+                    <select class="search-select ">
+                        <option value="1">All</option>
+                        <input class="search-input" placeholder="Search Amazon">
+                        <div class="search_icon">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </div>
+                    </select>
+                </div>
+                <div class="nav-signin border padding-">
+                    <p><span>Hello, sign in</span></p>
+                    <p class="nav-second">Account & Lists</p>
+                </div>
+                <div class="nav-signin border padding-">
+                    <p><span>Returns</span></p>
+                    <p class="nav-second">& Orders</p>
+                </div>
+                <div class="nav-cart border padding-">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    Cart
+                </div>
+            </div>
+    
+            <div class="panel">
+                <div class="panel-all  border">
+                    <i class="fa-solid fa-bars padding-"></i>
+                    <p class=""> All</p>
+                </div>
+                <div class="panel-options ">
+                    <p class="padding- border">Amazon miniTV</p>
+                    <p class="padding- border">Sell</p>
+                    <p class="padding- border">Best Sellers</p>
+                    <p class="padding- border">Today's Deals</p>
+                    <p class="padding- border">Mobiles</p>
+                    <p class="padding- border">New Releases</p>
+                </div>
+                <div class="panel-deals padding- border">
+                    <a href="https://rb.gy/g7wmf">New Launches For Mobile, Electronics & More | Shop Now</a>
+                </div>
+    
+            </div>
+        </header>
+         <div class="hero-section2">
+          
+        </div>
+        <div class="shop-section" id="shopSection">
+            <img src="hero-image2.png">
+        </div>
+        
+        <div class="shop-section2" id="shopSection2">
+            <h2 class="products-heading">Products</h2>
+            <div class="card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <button class="checkout-button" onclick="clearSession()">Checkout</button>
+
+        <script>
+            var shopSection = document.getElementById('shopSection2');
+            var tbody = document.querySelector('.shop-section2 tbody');
+			
+            for (var i = 0; i < sessionStorage.length; i++) {
+                var key = sessionStorage.key(i);
+                var value = sessionStorage.getItem(key);
+                var row = document.createElement('tr');
+                var itemCell = document.createElement('td');
+                var priceCell = document.createElement('td');
+                itemCell.textContent = key;
+                priceCell.textContent = value;
+                row.appendChild(itemCell);
+                row.appendChild(priceCell);
+                tbody.appendChild(row);
+            }
+
+            function clearSession() {
+                sessionStorage.clear();
+                location.reload(); 
+            }
+        </script>
+   
+    </div>
+</body>
+</html>
